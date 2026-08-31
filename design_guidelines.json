@@ -1,0 +1,144 @@
+{
+  "theme": "light",
+  "archetype": "ARCHETYPE 4: SWISS & HIGH-CONTRAST (Authority, Clarity, Truth)",
+  "typography": {
+    "fonts": {
+      "heading": "Cabinet Grotesk",
+      "body": "IBM Plex Sans",
+      "monospace": "JetBrains Mono"
+    },
+    "rules": {
+      "h1": "text-4xl sm:text-5xl lg:text-6xl tracking-tighter font-black",
+      "h2": "text-2xl sm:text-3xl lg:text-4xl tracking-tight font-bold",
+      "h3": "text-xl sm:text-2xl font-semibold",
+      "body": "text-base leading-relaxed font-normal",
+      "stats_numbers": "font-mono text-3xl font-medium tracking-tight",
+      "labels": "text-xs tracking-[0.2em] uppercase font-semibold text-muted-foreground",
+      "anti_patterns": [
+        "Do not use Inter, Roboto, Open Sans, or Lato for Headings.",
+        "Space Grotesk is FORBIDDEN.",
+        "Do not use text-7xl or above."
+      ]
+    }
+  },
+  "colors": {
+    "strategy": "Functional Color Only. UI should be mostly monochrome with color strictly used for data visualization and direct actions.",
+    "palette": {
+      "light": {
+        "background": "240 20% 98%",
+        "foreground": "240 10% 10%",
+        "primary": "220 100% 50%",
+        "primary-foreground": "0 0% 100%",
+        "muted": "240 5% 90%",
+        "border": "240 10% 85%"
+      },
+      "dark": {
+        "background": "240 10% 5%",
+        "foreground": "0 0% 98%",
+        "primary": "220 100% 60%",
+        "primary-foreground": "0 0% 100%",
+        "muted": "240 10% 15%",
+        "border": "240 10% 20%"
+      },
+      "data_visualization": [
+        "220 100% 50%",
+        "200 80% 45%",
+        "180 70% 40%",
+        "160 60% 35%",
+        "140 50% 30%"
+      ]
+    },
+    "forbidden_colors": ["#7351B7", "#1B93A4"]
+  },
+  "layouts": {
+    "grids": {
+      "strategy": "MODE B: High Density Grid (For Dashboards / Analytics). Cardless, sharp 1px borders.",
+      "base": "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6",
+      "spans": {
+        "summary_metric": "col-span-1",
+        "primary_chart": "col-span-2 row-span-2 lg:col-span-3",
+        "feed_list": "col-span-1 row-span-2"
+      }
+    },
+    "spacing": {
+      "philosophy": "Generous Spacing inside containers. 8px-based scale.",
+      "containers": "p-6 md:p-8",
+      "sections": "py-12 md:py-24"
+    },
+    "surface": {
+      "style": "GRID BORDERS (The Technical Look). Focus on exposing the grid skeleton. 1px solid borders, no shadows.",
+      "radius": "rounded-none md:rounded-sm (Max 4px radius, prefer sharp edges)"
+    }
+  },
+  "visual_enhancers": {
+    "motion": {
+      "hover": "Subtle background color shift, -translate-y-[1px] on interactive elements",
+      "transitions": "transition-colors duration-200 ease-out, transition-transform duration-200 ease-out",
+      "anti_patterns": ["No transition-all", "Respect prefers-reduced-motion"]
+    },
+    "textures": {
+      "grain": "Apply a very subtle SVG noise overlay fixed to the background to kill digital flatness."
+    }
+  },
+  "components": {
+    "strategy": "Use Shadcn/UI for logic (Forms, Select, Dialog), but strip the Vercel-look. Apply sharp borders, flat backgrounds, and high contrast.",
+    "charts": "Recharts via Shadcn. Use bar charts for skill frequency. Maximize data-ink (remove unnecessary grid lines).",
+    "icons": {
+      "library": "@phosphor-icons/react",
+      "command": "yarn add @phosphor-icons/react",
+      "style": "duotone or regular weight"
+    },
+    "toasts": {
+      "library": "sonner",
+      "path": "/app/src/components/ui/sonner.tsx"
+    },
+    "tables": "Right-align numbers, left-align text. No zebra striping, use padding."
+  },
+  "accessibility": {
+    "contrast": "Minimum 4.5:1 for standard text, 3:1 for large text. Ensure primary button text is white.",
+    "focus": "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none",
+    "testing": "All interactive elements MUST include data-testid attribute (e.g., data-testid='search-submit-button')."
+  },
+  "media": {
+    "image_urls": [
+      {
+        "url": "https://images.unsplash.com/photo-1729714055320-4d1c5d5e213d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2MzR8MHwxfHNlYXJjaHwzfHxwcm9mZXNzaW9uYWwlMjB3b3JraW5nJTIwYXQlMjBsYXB0b3AlMjBtb2Rlcm58ZW58MHx8fHwxNzg4MTMzNzA4fDA&ixlib=rb-4.1.0&q=85",
+        "description": "Professional working at laptop. Use for Empty States, Hero section (if any), or onboarding login screens.",
+        "category": "hero/empty-state"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1644088379091-d574269d422f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzV8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGRhdGElMjB2aXN1YWxpemF0aW9uJTIwbmV0d29yayUyMG1hcHxlbnwwfHx8fDE3ODgxMzM3MDh8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Abstract blue data network map. Use for Loading State ('analyzing 50 postings...') background or header accent.",
+        "category": "loading-state/abstract"
+      }
+    ],
+    "rules": "Never use placeholder images. If rendering a company logo in the 'Top Hiring Companies' section, use a robust fallback to initials or a generic building icon if a real image is not available."
+  },
+  "instructions_to_main_agent": [
+    "Install Phosphor Icons: yarn add @phosphor-icons/react",
+    "Install Google Fonts (Cabinet Grotesk, IBM Plex Sans, JetBrains Mono) via index.html or CSS import.",
+    "Implement a cardless, high-density dashboard for the results. Use 1px borders (border-border) and flat backgrounds to separate content instead of heavy shadows or floating cards.",
+    "The primary dashboard should display a large, undeniable proof metric (e.g., '42/50 Postings'). Use JetBrains Mono for this number.",
+    "For the 'Skills' progress bars, use the brand's primary Klein Blue. Make them sharp (rounded-none).",
+    "Implement an AI Insight badge beside relevant skills using a distinct outline style (border-primary text-primary) to signify AI suggestion vs real-frequency skills.",
+    "Add data-testid attributes to all form inputs, dropdowns, buttons, and skill cards.",
+    "Use Recharts (Shadcn Chart component) to visualize Salary Range and Top Hiring Companies."
+  ],
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "You tend to converge toward generic, 'on distribution' outputs. In frontend design, this creates what users call the 'AI slop' aesthetic. Avoid this: make creative, distinctive frontends that surprise and delight.",
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients.",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy.",
+    "Use glass-morphism effects with backdrop filters (12-24px blur) where appropriate (e.g., sticky headers).",
+    "You MUST NOT apply universal transition (e.g., transition: all). Always add transitions for specific properties.",
+    "You MUST NOT center align the app container, i.e., do not add .App { text-align: center; }.",
+    "Always use modern button styles (e.g., sharp corners for this technical theme) with interaction animations & color relevant to the app style.",
+    "NEVER use AI assistant Emoji characters (🤖🧠💭💡🔮🎯) for icons. Use Phosphor Icons instead.",
+    "Every interaction needs micro-animations - hover states, transitions, and entrance animations.",
+    "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
+    "Subtle grain textures, custom selection states, and loading animations separate good from extraordinary.",
+    "Never use placeholder text for images or logos. Always use provided images or realistic text fallbacks.",
+    "Prioritize using pre-existing components from src/components/ui when applicable.",
+    "Use sonner for toasts, located at /app/src/components/ui/sonner.tsx"
+  ]
+}

@@ -1,0 +1,42 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+*credentials*.json
+*token*.json
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Node
+node_modules/
+frontend/node_modules/
+frontend/build/
+build/
+dist/
+coverage/
+.cache/
+
+# IDE and OS
+.vscode/
+.idea/
+.DS_Store
+
+# Logs and local data
+*.log
+storage/
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.tgz
