@@ -1,7 +1,8 @@
 import posthog from "posthog-js";
 
 const POSTHOG_KEY = process.env.REACT_APP_POSTHOG_KEY;
-const POSTHOG_HOST = process.env.REACT_APP_POSTHOG_HOST;
+const POSTHOG_HOST =
+  process.env.REACT_APP_POSTHOG_HOST || "https://us.i.posthog.com";
 
 export const analyticsEnabled = Boolean(POSTHOG_KEY && POSTHOG_HOST);
 
