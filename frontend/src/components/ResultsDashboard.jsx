@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import {
   ResponsiveContainer,
   BarChart,
@@ -18,6 +18,7 @@ import {
   ArrowUpRight,
   CurrencyDollar,
 } from "@phosphor-icons/react";
+import { capture } from "@/lib/analytics";
 
 const CATEGORIES = [
   { key: "technical", label: "Technical", icon: Code },
@@ -47,6 +48,15 @@ const formatAge = (seconds) => {
 
 export function ResultsDashboard({ data }) {
   const cur = data.query.country;
+
+  useEffect(() => {
+    capture("results_viewed", {
+      country: data.query.country,
+      cached: Boolean(data.cached),
+      postings_analyzed: data.postings_analyzed,
+    });
+  }, [data]);
+
   const skillsByCat = useMemo(() => {
     const g = {};
     data.skills.forEach((s) => {
@@ -278,6 +288,12 @@ export function ResultsDashboard({ data }) {
               href={s.url}
               target="_blank"
               rel="noreferrer"
+              onClick={() =>
+                capture("source_posting_clicked", {
+                  country: data.query.country,
+                  position: i + 1,
+                })
+              }
               className="group flex flex-col justify-between border border-border p-4 transition-transform duration-200 ease-out hover:-translate-y-[1px] hover:border-primary"
             >
               <div>

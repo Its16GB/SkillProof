@@ -5,6 +5,7 @@ import { SearchForm } from "@/components/SearchForm";
 import { ResultsDashboard } from "@/components/ResultsDashboard";
 import { LoadingPanel } from "@/components/LoadingPanel";
 import { Sparkle, GlobeHemisphereWest, ArrowRight } from "@phosphor-icons/react";
+import { capture, experienceBand } from "@/lib/analytics";
 
 const API = `${process.env.REACT_APP_BACKEND_URL || "http://localhost:8000"}/api`;
 
@@ -18,12 +19,21 @@ export default function Analyzer() {
     axios
       .get(`${API}/countries`)
       .then((r) => setCountries(r.data))
-      .catch(() =>
-        toast.error("Could not load country list. Try refreshing.")
-      );
+      .catch(() => {
+        capture("country_list_failed");
+        toast.error("Could not load country list. Try refreshing.");
+      });
   }, []);
 
   const runAnalysis = async (payload) => {
+    const startedAt = performance.now();
+    const eventContext = {
+      country: payload.country,
+      experience_band: experienceBand(payload.years_experience),
+      has_city: Boolean(payload.city),
+    };
+
+    capture("analysis_started", eventContext);
     setLoading(true);
     setError(null);
     setResult(null);
@@ -32,6 +42,13 @@ export default function Analyzer() {
         timeout: 120000,
       });
       setResult(data);
+      capture("analysis_completed", {
+        ...eventContext,
+        cached: Boolean(data.cached),
+        duration_ms: Math.round(performance.now() - startedAt),
+        postings_analyzed: data.postings_analyzed,
+        skills_extracted: data.skills.length,
+      });
       toast.success(`Analyzed ${data.postings_analyzed} live postings.`);
       setTimeout(() => {
         document
@@ -43,6 +60,11 @@ export default function Analyzer() {
         e.response?.data?.detail ||
         e.message ||
         "Something went wrong. Please try again.";
+      capture("analysis_failed", {
+        ...eventContext,
+        duration_ms: Math.round(performance.now() - startedAt),
+        http_status: e.response?.status || null,
+      });
       setError(msg);
       toast.error(msg);
     } finally {
@@ -66,9 +88,10 @@ export default function Analyzer() {
           </div>
           <a
             data-testid="github-source-link"
-            href="https://github.com/"
+            href="https://github.com/Its16GB/SkillProof"
             target="_blank"
             rel="noreferrer"
+            onClick={() => capture("github_source_clicked")}
             className="hidden items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground md:flex"
           >
             <GlobeHemisphereWest size={16} />
