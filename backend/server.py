@@ -72,6 +72,8 @@ logger = logging.getLogger("skillproof")
 ALLOWED_CATEGORIES = {"technical", "tools", "soft", "certification"}
 
 # --- Cache / cost-saving config ---------------------------------------------
+POSTINGS_LIMIT = 10
+
 CACHE_TTL_SECONDS = int(os.environ.get("ANALYSIS_CACHE_TTL_SECONDS", 24 * 3600))
 LLM_MODEL_NAME = os.environ.get("LLM_MODEL", "openai/gpt-oss-20b")
 DESC_TRUNCATE_CHARS = int(os.environ.get("DESC_TRUNCATE_CHARS", 400))
@@ -126,7 +128,7 @@ class AnalysisResponse(BaseModel):
 
 # --- Adzuna helpers ----------------------------------------------------------
 async def fetch_adzuna_jobs(
-    country: str, role: str, city: str | None, results: int = 50
+    country: str, role: str, city: str | None, results: int = POSTINGS_LIMIT
 ) -> dict[str, Any]:
     if country not in SUPPORTED_COUNTRIES:
         raise HTTPException(400, f"Unsupported country '{country}'.")
@@ -137,7 +139,7 @@ async def fetch_adzuna_jobs(
     params: dict[str, Any] = {
         "app_id": ADZUNA_APP_ID,
         "app_key": ADZUNA_APP_KEY,
-        "results_per_page": max(10, min(50, results)),
+        "results_per_page": max(10, min(POSTINGS_LIMIT, results)),
         "what": role,
         "content-type": "application/json",
         "sort_by": "relevance",
@@ -170,6 +172,7 @@ def seniority_for_years(years: int) -> str:
 # --- Cache -----------------------------------------------------------------
 def cache_key(role: str, country: str, city: str | None, seniority: str) -> str:
     raw = "|".join([
+        f"groq-v2:{LLM_MODEL_NAME}:{POSTINGS_LIMIT}:{DESC_TRUNCATE_CHARS}",
         role.strip().lower(),
         country.strip().lower(),
         (city or "").strip().lower(),
@@ -301,7 +304,7 @@ POSTINGS:
     }
     payload = {
         "model": LLM_MODEL_NAME,
-        "max_completion_tokens": 6000,
+        "max_completion_tokens": 3000,
         "messages": [
             {"role": "system", "content": SKILL_SYSTEM},
             {"role": "user", "content": prompt},
@@ -380,6 +383,8 @@ POSTINGS:
                 )
             elif response.status_code in {401, 403}:
                 detail = "AI service authentication failed. Check the backend Groq API key and model access."
+            elif response.status_code == 413:
+                detail = "The AI request exceeds the provider token limit. Please contact the service administrator."
             elif response.status_code == 429:
                 detail = "The AI service is busy or its usage limit was reached. Please try again later."
             raise HTTPException(502, detail)
@@ -513,7 +518,8 @@ async def analyze(req: AnalyzeRequest):
         logger.info("cache HIT key=%s age=%ss", ck[:8], age)
         return cached
 
-    data = await fetch_adzuna_jobs(req.country, req.role, req.city, 50)
+    data = await fetch_adzuna_jobs(req.country, req.role, req.city, POSTINGS_LIMIT)
+    data["results"] = (data.get("results") or [])[:POSTINGS_LIMIT]
     results, samples = parse_adzuna_results(data)
 
     if not results:

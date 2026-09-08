@@ -114,7 +114,7 @@ export default function Analyzer() {
               you want &mdash; anywhere in the world.
             </h1>
             <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground">
-              Pull up to <span className="font-mono text-foreground">50 live job
+              Pull up to <span className="font-mono text-foreground">10 live job
               postings</span> from Adzuna, then let Groq extract
               the exact skills, tools and certifications employers actually ask
               for &mdash; ranked by how many postings mention them.

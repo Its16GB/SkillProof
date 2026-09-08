@@ -96,7 +96,7 @@ export function ResultsDashboard({ data }) {
             >
               {data.postings_analyzed}
             </span>
-            <span className="text-muted-foreground">/ 50 target</span>
+            <span className="text-muted-foreground">/ 10 target</span>
           </div>
           <p className="mt-4 text-sm text-muted-foreground">
             Real, live postings pulled from Adzuna for{" "}

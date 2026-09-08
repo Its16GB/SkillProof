@@ -126,7 +126,7 @@ export function SearchForm({ countries, onSubmit, disabled }) {
         className="mt-8 h-12 w-full rounded-none bg-foreground text-background transition-transform duration-200 ease-out hover:-translate-y-[1px] hover:bg-foreground/90 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <MagnifyingGlass size={18} className="mr-2" weight="bold" />
-        {disabled ? "Analyzing 50 postings…" : "Analyze real postings"}
+        {disabled ? "Analyzing up to 10 postings…" : "Analyze real postings"}
       </Button>
 
       <p className="mt-4 text-xs text-muted-foreground">

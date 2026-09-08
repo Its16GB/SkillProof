@@ -2,7 +2,7 @@ import { CircleNotch } from "@phosphor-icons/react";
 
 const STEPS = [
   "Contacting Adzuna",
-  "Fetching up to 50 real postings",
+  "Fetching up to 10 real postings",
   "Cleaning descriptions",
   "Running Groq skills extraction",
   "Aggregating salary, companies, titles",

@@ -9,7 +9,7 @@ The project combines live labor market data, NLP and LLM based extraction, backe
 ## What it does
 
 1. Accepts a target role, country, optional city, and years of experience.
-2. Retrieves up to 50 live job postings through the Adzuna API.
+2. Retrieves up to 10 live job postings through the Adzuna API.
 3. Cleans and prepares job descriptions for analysis.
 4. Uses Groq to extract and normalize technical skills, tools, soft skills, and certifications.
 5. Aggregates skill frequency, salary information, top companies, and common titles.

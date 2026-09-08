@@ -69,3 +69,26 @@ class ExtractionTests(unittest.IsolatedAsyncioTestCase):
             with self.subTest(body=body), self.assertRaises(HTTPException) as raised:
                 await self.extract(httpx.Response(200, json=body))
             self.assertEqual(raised.exception.status_code, 502)
+
+    async def test_analysis_caps_postings_and_requests_ten(self):
+        jobs = [{"description": "Python", "title": "Engineer"} for _ in range(50)]
+        database = AsyncMock()
+        with patch.object(server, "get_cached_analysis", AsyncMock(return_value=None)), patch.object(
+            server, "fetch_adzuna_jobs", AsyncMock(return_value={"results": jobs})
+        ) as fetch, patch.object(server, "extract_skills_with_llm", AsyncMock(return_value={
+            "skills": [], "ai_suggested_skills": []
+        })) as extract, patch.object(server, "db", database), patch.object(
+            server, "save_to_cache", AsyncMock()
+        ):
+            result = await server.analyze(server.AnalyzeRequest(
+                role="Engineer", country="us", years_experience=4
+            ))
+        self.assertEqual(fetch.call_args.args[-1], 10)
+        self.assertEqual(len(extract.call_args.args[-1]), 10)
+        self.assertEqual(result.postings_analyzed, 10)
+
+    async def test_oversized_request_guidance(self):
+        with self.assertRaises(HTTPException) as raised:
+            await self.extract(httpx.Response(413, json={"error": {}}))
+        self.assertIn("token limit", raised.exception.detail)
+        self.assertNotIn("try again later", raised.exception.detail)
