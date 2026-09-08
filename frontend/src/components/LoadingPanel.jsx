@@ -4,7 +4,7 @@ const STEPS = [
   "Contacting Adzuna",
   "Fetching up to 50 real postings",
   "Cleaning descriptions",
-  "Running Claude Sonnet 4.6 skills extraction",
+  "Running Groq skills extraction",
   "Aggregating salary, companies, titles",
 ];
 

@@ -207,7 +207,7 @@ export function ResultsDashboard({ data }) {
             </h3>
           </div>
           <p className="mb-5 max-w-2xl text-sm text-muted-foreground">
-            These are under-represented in the current postings but Claude
+            These are under-represented in the current postings but Groq
             Sonnet 4.6 believes a strong {data.seniority_label.toLowerCase()}{" "}
             candidate should have them.
           </p>

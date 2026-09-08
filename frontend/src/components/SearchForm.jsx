@@ -130,7 +130,7 @@ export function SearchForm({ countries, onSubmit, disabled }) {
       </Button>
 
       <p className="mt-4 text-xs text-muted-foreground">
-        Uses live Adzuna postings + Claude Sonnet 4.6 for skills extraction.
+        Uses live Adzuna postings + Groq for skills extraction.
         Analysis takes 15–35 s.
       </p>
     </form>

@@ -1,6 +1,6 @@
 """SkillProof – Job-posting-based Skills Gap Analyzer.
 
-Backend fetches real job postings from Adzuna, then uses Claude to extract
+Backend fetches real job postings from Adzuna, then uses Groq to extract
 the most common skills, grouped by category, along with salary insights,
 top companies and job titles.
 """
@@ -30,7 +30,7 @@ load_dotenv(ROOT_DIR / ".env")
 # --- Config ------------------------------------------------------------------
 MONGO_URL = os.environ["MONGO_URL"]
 DB_NAME = os.environ["DB_NAME"]
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 ADZUNA_APP_ID = os.environ.get("ADZUNA_APP_ID", "")
 ADZUNA_APP_KEY = os.environ.get("ADZUNA_APP_KEY", "")
 
@@ -73,7 +73,7 @@ ALLOWED_CATEGORIES = {"technical", "tools", "soft", "certification"}
 
 # --- Cache / cost-saving config ---------------------------------------------
 CACHE_TTL_SECONDS = int(os.environ.get("ANALYSIS_CACHE_TTL_SECONDS", 24 * 3600))
-LLM_MODEL_NAME = os.environ.get("LLM_MODEL", "claude-sonnet-4-20250514")
+LLM_MODEL_NAME = os.environ.get("LLM_MODEL", "openai/gpt-oss-20b")
 DESC_TRUNCATE_CHARS = int(os.environ.get("DESC_TRUNCATE_CHARS", 400))
 
 
@@ -256,8 +256,8 @@ async def extract_skills_with_llm(
     years: int,
     descriptions: list[str],
 ) -> dict[str, Any]:
-    if not ANTHROPIC_API_KEY:
-        raise HTTPException(500, "ANTHROPIC_API_KEY not configured")
+    if not GROQ_API_KEY:
+        raise HTTPException(500, "GROQ_API_KEY not configured in backend .env")
 
     joined = "\n\n---\n\n".join(
         f"[Posting {i + 1}]\n{_clean_desc(d)}" for i, d in enumerate(descriptions)
@@ -296,18 +296,21 @@ POSTINGS:
 """
 
     headers = {
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
+        "Authorization": f"Bearer {GROQ_API_KEY}",
         "content-type": "application/json",
     }
     payload = {
         "model": LLM_MODEL_NAME,
-        "max_tokens": 6000,
-        "system": SKILL_SYSTEM,
-        "messages": [{"role": "user", "content": prompt}],
-        "output_config": {
-            "format": {
-                "type": "json_schema",
+        "max_completion_tokens": 6000,
+        "messages": [
+            {"role": "system", "content": SKILL_SYSTEM},
+            {"role": "user", "content": prompt},
+        ],
+        "response_format": {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "skill_extraction",
+                "strict": True,
                 "schema": {
                     "type": "object",
                     "properties": {
@@ -364,32 +367,48 @@ POSTINGS:
     try:
         async with httpx.AsyncClient(timeout=90.0) as http:
             response = await http.post(
-                "https://api.anthropic.com/v1/messages", headers=headers, json=payload
+                "https://api.groq.com/openai/v1/chat/completions", headers=headers, json=payload
             )
         if response.status_code >= 400:
-            logger.error("Anthropic %s: %s", response.status_code, response.text[:500])
-            raise HTTPException(502, f"AI extraction failed ({response.status_code})")
+            logger.error("Groq %s: %s", response.status_code, response.text[:500])
+            detail = f"AI extraction failed ({response.status_code}). Please try again later."
+            if response.status_code in {400, 404}:
+                detail = (
+                    "The AI service rejected the analysis request. Check the backend "
+                    "LLM_MODEL configuration and Groq structured output support. "
+                    "See backend logs for the provider error."
+                )
+            elif response.status_code in {401, 403}:
+                detail = "AI service authentication failed. Check the backend Groq API key and model access."
+            elif response.status_code == 429:
+                detail = "The AI service is busy or its usage limit was reached. Please try again later."
+            raise HTTPException(502, detail)
         body = response.json()
-        if body.get("stop_reason") == "max_tokens":
+        choices = body.get("choices") or []
+        if not choices:
+            raise HTTPException(502, "AI returned no completion")
+        choice = choices[0]
+        if choice.get("finish_reason") == "length":
             logger.error(
-                "Claude output truncated at max_tokens; usage=%s",
+                "Groq output truncated at max_tokens; usage=%s",
                 body.get("usage"),
             )
             raise HTTPException(502, "AI response exceeded the output token limit")
-        text = "".join(
-            block.get("text", "")
-            for block in body.get("content", [])
-            if block.get("type") == "text"
-        )
+        message = choice.get("message") or {}
+        if message.get("refusal") or choice.get("finish_reason") != "stop":
+            raise HTTPException(502, "AI could not complete this analysis")
+        text = message.get("content")
+        if not isinstance(text, str) or not text.strip():
+            raise HTTPException(502, "AI returned empty output")
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001
         logger.exception("LLM error")
         raise HTTPException(502, f"AI extraction failed: {e}") from e
-    # Parse Claude JSON response safely
+    # Parse Groq JSON response safely
     cleaned_text = text.strip()
 
-    # Remove Markdown code fences if Claude included them
+    # Remove Markdown code fences if Groq included them
     if cleaned_text.startswith("```"):
         cleaned_text = re.sub(
             r"^```(?:json)?\s*|\s*```$",
@@ -406,7 +425,7 @@ POSTINGS:
         end = cleaned_text.rfind("}")
 
         if start == -1 or end == -1 or end <= start:
-            logger.error("Claude returned non-JSON output: %s", cleaned_text[:1000])
+            logger.error("Groq returned non-JSON output: %s", cleaned_text[:1000])
             raise HTTPException(502, "AI returned unparseable output")
 
         candidate = cleaned_text[start:end + 1]
@@ -415,7 +434,7 @@ POSTINGS:
             parsed = json.loads(candidate)
         except json.JSONDecodeError as e:
             logger.error(
-                "Claude returned invalid JSON: %s",
+                "Groq returned invalid JSON: %s",
                 candidate[:1000],
             )
             raise HTTPException(

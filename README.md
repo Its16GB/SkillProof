@@ -11,7 +11,7 @@ The project combines live labor market data, NLP and LLM based extraction, backe
 1. Accepts a target role, country, optional city, and years of experience.
 2. Retrieves up to 50 live job postings through the Adzuna API.
 3. Cleans and prepares job descriptions for analysis.
-4. Uses Claude to extract and normalize technical skills, tools, soft skills, and certifications.
+4. Uses Groq to extract and normalize technical skills, tools, soft skills, and certifications.
 5. Aggregates skill frequency, salary information, top companies, and common titles.
 6. Stores analyses in MongoDB and reuses cached results to reduce latency and API cost.
 7. Presents the results through an interactive React dashboard with source postings as evidence.
@@ -36,7 +36,7 @@ The project combines live labor market data, NLP and LLM based extraction, backe
 flowchart LR
     A[React Client] --> B[FastAPI API]
     B --> C[Adzuna Jobs API]
-    B --> D[Claude API]
+    B --> D[Groq API]
     B --> E[(MongoDB)]
     C --> B
     D --> B
@@ -78,7 +78,7 @@ Python, FastAPI, Pydantic, HTTPX, Motor, MongoDB
 
 ### AI and NLP
 
-Anthropic Claude API, JSON Schema structured outputs, prompt engineering, job-description normalization
+Groq API, JSON Schema structured outputs, prompt engineering, job-description normalization
 
 ### Data and analytics
 
@@ -135,7 +135,20 @@ On Windows PowerShell, activate and copy the example environment file with:
 Copy-Item .env.example .env
 ```
 
-Configure `.env` with your own MongoDB, Anthropic, and Adzuna credentials.
+Configure `.env` with your own MongoDB, Groq, and Adzuna credentials.
+
+Create a Groq API key at https://console.groq.com/keys and set these values in `backend/.env`:
+
+```env
+GROQ_API_KEY=your_groq_api_key
+LLM_MODEL=openai/gpt-oss-20b
+```
+
+Restart the backend after editing `.env`. The default model supports strict JSON Schema output.
+Groq offers a free tier with request and token limits; check your account limits at
+https://console.groq.com/docs/rate-limits. A Groq key is required; an Anthropic key will not work.
+When overriding `LLM_MODEL`, choose a model supporting Groq strict structured outputs.
+
 
 ```bash
 uvicorn server:app --reload --port 8000
@@ -162,7 +175,7 @@ Backend:
 MONGO_URL
 DB_NAME
 CORS_ORIGINS
-ANTHROPIC_API_KEY
+GROQ_API_KEY
 ADZUNA_APP_ID
 ADZUNA_APP_KEY
 LLM_MODEL
@@ -186,7 +199,7 @@ Never commit real `.env` files or API credentials. Example files contain placeho
 
 **Validated inputs.** Pydantic models validate role, country, city, and experience values before analysis.
 
-**Reliable structured output.** Claude responses use a JSON Schema output constraint and defensive parsing. Truncated or malformed responses are rejected instead of silently repaired.
+**Reliable structured output.** Groq responses use a JSON Schema output constraint and defensive parsing. Truncated or malformed responses are rejected instead of silently repaired.
 
 **Async network calls.** External API communication uses asynchronous HTTP clients so network operations do not unnecessarily block the service.
 

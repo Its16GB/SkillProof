@@ -115,7 +115,7 @@ export default function Analyzer() {
             </h1>
             <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground">
               Pull up to <span className="font-mono text-foreground">50 live job
-              postings</span> from Adzuna, then let Claude extract
+              postings</span> from Adzuna, then let Groq extract
               the exact skills, tools and certifications employers actually ask
               for &mdash; ranked by how many postings mention them.
             </p>
@@ -156,11 +156,11 @@ export default function Analyzer() {
           >
             <div className="label-mono mb-2 text-destructive">Analysis failed</div>
             <p className="text-base">{error}</p>
-            <p className="mt-3 text-sm text-muted-foreground">
+            {error.startsWith("No postings found.") && <p className="mt-3 text-sm text-muted-foreground">
               Tip: try a broader role (e.g. &ldquo;Software Engineer&rdquo; instead of a very
               specific title), remove the city, or select a country with more
               activity like US, UK or India.
-            </p>
+            </p>}
           </div>
         )}
 
@@ -197,7 +197,7 @@ export default function Analyzer() {
             >
               Adzuna
             </a>{" "}
-            &amp; Claude
+            &amp; Groq
           </span>
           <span className="label-mono">Open Source · MIT</span>
         </div>
